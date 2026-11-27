@@ -116,9 +116,10 @@ async function render() {
 }
 
 function pintarTabbar(activo) {
-  const item = (clave, etiqueta) => `<button class="tab ${activo === clave ? 'activo' : ''}" data-go="${clave}" aria-label="${etiqueta}">${svg(clave === 'inicio' ? 'inicio' : clave, '')}<span>${etiqueta}</span></button>`;
+  // Enlaces (href) en vez de botones: iOS los navega de forma nativa y no selecciona el texto al tocar
+  const item = (clave, etiqueta) => `<a class="tab ${activo === clave ? 'activo' : ''}" href="#/${clave}" aria-label="${etiqueta}">${svg(clave, '')}<span>${etiqueta}</span></a>`;
   tabbar.innerHTML = item('inicio', 'Inicio') + item('servicios', 'Servicios') +
-    `<div class="tab-mas"><button data-go="nuevo" aria-label="Nuevo servicio">${svg('mas')}</button></div>` +
+    `<div class="tab-mas"><a href="#/nuevo" aria-label="Nuevo servicio">${svg('mas')}</a></div>` +
     item('tarifas', 'Tarifas') + item('perfil', 'Perfil');
 }
 

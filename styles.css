@@ -198,3 +198,16 @@ textarea { min-height: 80px; resize: vertical; }
 
 .vacio { text-align: center; color: var(--muted); padding: 28px 12px; }
 .vacio strong { display: block; color: var(--texto); margin-bottom: 4px; font-size: 16px; }
+
+/* Barra inferior: sin selección de texto ni resaltado al tocar (iOS) */
+.tabbar, .tab, .tab-mas a, .tile, .chip, .icon-btn, .btn, .fila-btn {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.tab { text-decoration: none; }
+.tab-mas a { display: flex; justify-content: center; text-decoration: none; }
+.tab-mas a {
+  width: 56px; height: 56px; border-radius: 999px; background: var(--azul); color: #fff; margin-top: -22px;
+  box-shadow: 0 6px 16px rgba(28,91,216,.35); display: grid; place-items: center;
+}
+.tab-mas a svg { width: 26px; height: 26px; }
