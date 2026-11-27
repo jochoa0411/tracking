@@ -23,7 +23,16 @@ const ICONOS = {
 const svg = (nombre, clase = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${clase}" aria-hidden="true"><path d="${ICONOS[nombre]}"/></svg>`;
 
 // Estado de pantalla (no persiste): acción abierta en el detalle, filtro de lista, evidencias a medias.
-const ui = { acc: null, foto: null, firma: null, geo: null, filtro: 'hoy', guardando: false, renderId: 0 };
+const ui = { acc: null, foto: null, firma: null, geo: null, filtro: 'hoy', guardando: false, renderId: 0, tarifasMsg: null };
+
+// Cabecera con botón de regreso. `volverA` es la ruta destino (explícita, no el historial del navegador).
+const cabecera = (titulo, sub, volverA) => `
+  <header class="top">
+    <div class="top-titulo">
+      ${volverA ? `<button class="icon-btn" data-go="${volverA}" aria-label="Volver">${svg('atras')}</button>` : ''}
+      <div>${sub ? `<p class="muted">${sub}</p>` : ''}<h1>${titulo}</h1></div>
+    </div>
+  </header>`;
 
 // ── Utilidades ───────────────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
@@ -93,6 +102,7 @@ async function render() {
   const [base, arg] = ruta().split('/');
   if (!sesion && base !== 'login') { location.hash = '#/login'; return; }
   if (sesion && base === 'login') { location.hash = '#/inicio'; return; }
+  if (base !== 'tarifas') ui.tarifasMsg = null;
   const vista = VISTAS[base] || VISTAS.inicio;
   const { html, after } = await vista(arg);
   if (id !== ui.renderId) return;   // llegó otra navegación mientras cargaba
@@ -171,7 +181,7 @@ const VISTAS = {
     const chip = (v, t) => `<button class="chip ${ui.filtro === v ? 'activo' : ''}" data-action="filtro" data-val="${v}">${t}</button>`;
     return {
       html: `
-        <header class="top"><h1>Mis servicios</h1>
+        <header class="top"><div class="top-titulo"><button class="icon-btn" data-go="inicio" aria-label="Volver">${svg('atras')}</button><h1>Mis servicios</h1></div>
           <div class="top-acciones"><button class="icon-btn" data-action="sync" aria-label="Sincronizar">${svg('sync')}</button></div></header>
         <div class="chips">${chip('hoy', 'Hoy')}${chip('semana', 'Últimos 7 días')}${chip('todos', 'Todos')}</div>
         ${filtrados.length ? `<section class="card">${filtrados.map(filaServicio).join('')}</section>`
@@ -186,7 +196,7 @@ const VISTAS = {
       : `<option value="">Primero agrega tus tarifas</option>`;
     return {
       html: `
-        <header class="top"><div><p class="muted">Un servicio por entrega o recolección</p><h1>Nuevo servicio</h1></div></header>
+        ${cabecera('Nuevo servicio', 'Un servicio por entrega o recolección', 'inicio')}
         <form class="card" id="form-nuevo">
           <div class="campo"><span class="etiqueta">Tipo</span>
             <div class="segmentos" data-seg="tipo">
@@ -283,15 +293,16 @@ const VISTAS = {
     lista.sort((a, b) => String(a.zona).localeCompare(String(b.zona)));
     return {
       html: `
-        <header class="top"><div><p class="muted">Tú cargas tus precios; LGM los revisa después</p><h1>Tarifas</h1></div></header>
+        ${cabecera('Tarifas', 'Tú cargas tus precios; LGM los revisa después', 'inicio')}
         <section class="card">
           <div class="fila-dos" style="font-size:12px;color:var(--muted);margin-bottom:4px"><span>Zona · nombre</span><span>Monto (Q)</span></div>
           <div id="tarifas-lista">${lista.map(filaTarifa).join('') || ''}</div>
-          ${lista.length ? '' : '<div class="vacio" id="tarifas-vacio"><strong>Aún no tienes tarifas</strong>Agrega la primera con el botón de abajo.</div>'}
+          ${lista.length ? '' : '<div class="vacio" id="tarifas-vacio"><strong>Aún no tienes tarifas</strong>Toca “Agregar tarifa” para crear la primera.</div>'}
         </section>
         <div class="acciones">
           <button class="btn secundario" data-action="agregar-tarifa">Agregar tarifa</button>
           <button class="btn" data-action="guardar-tarifas">Guardar tarifas</button>
+          ${ui.tarifasMsg ? `<p class="ok-msg" role="status">${esc(ui.tarifasMsg)}</p>` : ''}
         </div>
         <p class="muted" style="margin-top:12px">Para quitar una tarifa, desmarca “Activa”. Así no se pierde el historial de los servicios.</p>`,
     };
@@ -302,7 +313,7 @@ const VISTAS = {
     const pendientes = await api.contarPendientes();
     return {
       html: `
-        <header class="top"><h1>Perfil</h1></header>
+        ${cabecera('Perfil', '', 'inicio')}
         <section class="card">
           <div class="card-titulo">${esc(s.nombre || 'Mensajero')}</div>
           <p class="muted" style="margin-top:4px">${pendientes ? pendientes + ' servicio(s) por enviar' : 'Todo sincronizado'}</p>
@@ -533,8 +544,10 @@ async function guardarTarifas() {
     const id = f.dataset.id;
     lista.push({ id: /^\d+$/.test(id) ? Number(id) : id, zona, nombre, monto, activa });
   }
+  if (!lista.length) return toast('Agrega al menos una tarifa antes de guardar', 'error');
   await api.guardarTarifasLocales(lista);
-  toast('Tarifas guardadas. Se envían al PFS en cuanto haya señal.');
+  ui.tarifasMsg = navigator.onLine ? 'Guardado. Se envía al PFS ahora.' : 'Guardado en el teléfono. Se envía al PFS cuando haya señal.';
+  toast('Tarifas guardadas');
   dispararSync({ silencioso: true });
   render();
 }
@@ -563,7 +576,10 @@ app.addEventListener('click', async (e) => {
     document.getElementById('tarifas-vacio')?.remove();
     const tmp = `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     lista.insertAdjacentHTML('beforeend', filaTarifa({ id: tmp, zona: '', nombre: '', monto: '', activa: true }));
-    lista.lastElementChild.querySelector('[name=zona]').focus();
+    ui.tarifasMsg = null;
+    const nueva = lista.lastElementChild;
+    nueva.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    nueva.querySelector('[name=zona]').focus();
     return;
   }
   if (a === 'guardar-tarifas') return guardarTarifas();
