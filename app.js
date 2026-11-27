@@ -548,8 +548,12 @@ async function guardarTarifas() {
   await api.guardarTarifasLocales(lista);
   ui.tarifasMsg = navigator.onLine ? 'Guardado. Se envía al PFS ahora.' : 'Guardado en el teléfono. Se envía al PFS cuando haya señal.';
   toast('Tarifas guardadas');
-  dispararSync({ silencioso: true });
-  render();
+  await render();
+  const r = await dispararSync({ silencioso: true });
+  if (r.error) {
+    ui.tarifasMsg = 'Guardado en el teléfono, pero no se envió: ' + r.error.message;
+    render();
+  }
 }
 
 // ── Eventos (delegación) ─────────────────────────────────────────────

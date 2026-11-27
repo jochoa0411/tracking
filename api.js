@@ -40,7 +40,8 @@ async function llamar(path, { metodo = 'GET', cuerpo, conToken = true } = {}) {
       body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
     });
   } catch {
-    throw new ErrorApi(0, 'Sin conexión');
+    // Con red pero sin respuesta válida (CORS, servidor caído, túnel apagado) el navegador también llega aquí
+    throw new ErrorApi(0, navigator.onLine ? 'No se pudo conectar con el PFS' : 'Sin conexión');
   }
   let datos = null;
   try { datos = await res.json(); } catch {}
