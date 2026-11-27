@@ -46,6 +46,9 @@ p { margin: 0; }
 .card-titulo { font-weight: 700; font-size: 16px; }
 .fila { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--linea); }
 .fila:first-child { border-top: 0; padding-top: 4px; }
+.fila-btn { width: 100%; background: none; border: 0; border-top: 1px solid var(--linea); text-align: left; cursor: pointer; padding: 12px 0; }
+.fila-btn:first-child { border-top: 0; padding-top: 4px; }
+.fila-btn:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; border-radius: 8px; }
 .fila-main { flex: 1; min-width: 0; }
 .fila-main strong { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fila-flecha { color: var(--muted); }

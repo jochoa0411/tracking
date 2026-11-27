@@ -72,7 +72,9 @@ async function dispararSync({ silencioso = false } = {}) {
   } else if (r.enviados > 0 && !silencioso) {
     toast(`${r.enviados} servicio(s) enviados al PFS`);
   }
-  if (['inicio', 'servicios'].includes(ruta().split('/')[0])) render();
+  // Repinta las pantallas que muestran el estado de sync. No repinta el detalle con un formulario de entrega abierto (perdería la firma).
+  const [base] = ruta().split('/');
+  if (['inicio', 'servicios', 'perfil'].includes(base) || (base === 'servicio' && !ui.acc)) render();
   return r;
 }
 
