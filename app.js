@@ -190,7 +190,11 @@ const VISTAS = {
   },
 
   nuevo: async () => {
-    const lista = (await tarifas.todas()).filter((t) => t.activa !== false).sort((a, b) => a.zona.localeCompare(b.zona));
+    let todas = await tarifas.todas();
+    if (!todas.length && navigator.onLine && api.sesion()) {
+      try { await api.bajarTarifas(); todas = await tarifas.todas(); } catch {}
+    }
+    const lista = todas.filter((t) => t.activa !== false).sort((a, b) => String(a.zona).localeCompare(String(b.zona)));
     const opciones = lista.length
       ? `<option value="">Elige la zona</option>` + lista.map((t) => `<option value="${esc(t.zona)}" data-monto="${Number(t.monto)}">${esc(t.zona)}${t.nombre ? ' · ' + esc(t.nombre) : ''} — ${fmtQ(t.monto)}</option>`).join('')
       : `<option value="">Primero agrega tus tarifas</option>`;
