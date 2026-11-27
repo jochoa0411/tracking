@@ -118,10 +118,10 @@ const VISTAS = {
       <div class="login-marca"><img class="logo" src="icons/icon.svg" alt=""><h1>Mensajero</h1>
         <p class="muted">Registra tus servicios del día</p></div>
       <form class="card" id="form-login">
-        <div class="campo"><label for="usuario">Usuario o correo</label>
-          <input id="usuario" type="text" autocomplete="username" placeholder="ej. jperez o nombre@correo.com" required></div>
+        <div class="campo"><label for="usuario">Usuario</label>
+          <input id="usuario" type="text" autocomplete="username" placeholder="ej. cmendez" required></div>
         <div class="campo"><label for="clave">Contraseña</label>
-          <input id="clave" type="password" autocomplete="current-password" placeholder="La misma del sistema" required></div>
+          <input id="clave" type="password" autocomplete="current-password" placeholder="••••••••" required></div>
         <button class="btn" type="submit">Entrar</button>
       </form></div>`,
   }),
