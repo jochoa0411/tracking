@@ -1,0 +1,16 @@
+{
+  "name": "Mensajero",
+  "short_name": "Mensajero",
+  "description": "Bitácora de servicios del mensajero",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F6FB",
+  "theme_color": "#1C5BD8",
+  "lang": "es",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
