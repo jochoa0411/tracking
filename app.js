@@ -103,6 +103,7 @@ async function render() {
   if (!sesion && base !== 'login') { location.hash = '#/login'; return; }
   if (sesion && base === 'login') { location.hash = '#/inicio'; return; }
   if (base !== 'tarifas') ui.tarifasMsg = null;
+  if (sesion && base !== 'login') { try { localStorage.setItem('mensajero.ruta', ruta()); } catch {} }
   const vista = VISTAS[base] || VISTAS.inicio;
   const { html, after } = await vista(arg);
   if (id !== ui.renderId) return;   // llegó otra navegación mientras cargaba
@@ -561,7 +562,7 @@ async function guardarTarifas() {
 }
 
 // ── Eventos (delegación) ─────────────────────────────────────────────
-app.addEventListener('click', async (e) => {
+document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-action],[data-go]');
   if (!el) return;
   if (el.dataset.go) { location.hash = '#/' + el.dataset.go; return; }
@@ -653,5 +654,12 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
+// Al abrir la app, vuelve a la última pantalla (iOS suspende la PWA y la recarga desde cero)
+if (!location.hash || location.hash === '#/' ) {
+  try {
+    const guardada = localStorage.getItem('mensajero.ruta');
+    if (guardada && api.sesion()) location.hash = '#/' + guardada;
+  } catch {}
+}
 render();
 if (api.sesion()) dispararSync({ silencioso: true });
