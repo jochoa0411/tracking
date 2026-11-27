@@ -197,9 +197,29 @@ const VISTAS = {
       try { await api.bajarTarifas(); todas = await tarifas.todas(); } catch {}
     }
     const lista = todas.filter((t) => t.activa !== false).sort((a, b) => String(a.zona).localeCompare(String(b.zona)));
-    const opciones = lista.length
-      ? `<option value="">Elige la zona</option>` + lista.map((t) => `<option value="${esc(t.zona)}" data-monto="${Number(t.monto)}">${esc(t.zona)}${t.nombre ? ' · ' + esc(t.nombre) : ''} — ${fmtQ(t.monto)}</option>`).join('')
-      : `<option value="">Primero agrega tus tarifas</option>`;
+    const hay = lista.length > 0;
+    const hojaOpciones = lista.map((t) => `
+        <button type="button" class="dd-opcion" data-dd-opcion="${esc(t.zona)}" data-monto="${Number(t.monto)}">
+          <span class="dd-opcion-txt"><strong>${esc(t.zona)}</strong>${t.nombre ? `<span>${esc(t.nombre)}</span>` : ''}</span>
+          <span class="dd-opcion-monto">${fmtQ(t.monto)}</span>
+        </button>`).join('');
+    const opciones = `
+      <div class="dd" data-dd="zona">
+        <input type="hidden" name="zona" id="zona" value="">
+        <button type="button" class="dd-btn" id="zona-btn" data-dd-abrir="zona" ${hay ? '' : 'disabled'} aria-haspopup="dialog">
+          <span class="dd-val" id="zona-txt">${hay ? 'Elige la zona' : 'Primero agrega tus tarifas'}</span>
+          <svg viewBox="0 0 24 24" class="dd-chev" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="dd-hoja" id="dd-hoja" hidden role="dialog" aria-modal="true" aria-label="Elegir zona">
+        <div class="dd-fondo" data-dd-cerrar></div>
+        <div class="dd-panel">
+          <div class="dd-agarre"></div>
+          <div class="dd-titulo">Elige la zona</div>
+          <div class="dd-lista">${hojaOpciones}</div>
+          <button type="button" class="btn secundario dd-cancelar" data-dd-cerrar>Cancelar</button>
+        </div>
+      </div>`;
     return {
       html: `
         ${cabecera('Nuevo servicio', 'Un servicio por entrega o recolección', 'inicio')}
@@ -215,9 +235,9 @@ const VISTAS = {
             <input id="cliente" name="cliente" type="text" maxlength="200" placeholder="ej. María González" required></div>
           <div class="campo"><label for="direccion">Dirección</label>
             <input id="direccion" name="direccion" type="text" maxlength="300" placeholder="ej. 4a calle 12-30, zona 15" required></div>
-          <div class="campo"><label for="zona">Zona (define la tarifa)</label>
-            <select id="zona" name="zona" ${lista.length ? '' : 'disabled'} required>${opciones}</select>
-            ${lista.length ? '' : '<span class="ayuda"><button type="button" class="link" data-go="tarifas">Ir a Tarifas</button></span>'}</div>
+          <div class="campo"><span class="etiqueta">Zona (define la tarifa)</span>
+            ${opciones}
+            ${hay ? '' : '<span class="ayuda"><button type="button" class="link" data-go="tarifas">Ir a Tarifas</button></span>'}</div>
           <div class="campo"><label for="monto">Monto a cobrar (Q)</label>
             <input id="monto" name="monto" type="number" inputmode="decimal" min="0" step="0.01" placeholder="ej. 45.00"></div>
           <div class="campo"><label for="descripcion">Descripción (opcional)</label>
@@ -563,7 +583,26 @@ async function guardarTarifas() {
 }
 
 // ── Eventos (delegación) ─────────────────────────────────────────────
+function abrirZona() {
+  document.getElementById('dd-hoja')?.removeAttribute('hidden');
+}
+function cerrarZona() {
+  document.getElementById('dd-hoja')?.setAttribute('hidden', '');
+}
+
 document.addEventListener('click', async (e) => {
+  // Selector de zona propio (hoja inferior)
+  if (e.target.closest('[data-dd-abrir]')) return abrirZona();
+  if (e.target.closest('[data-dd-cerrar]')) return cerrarZona();
+  const opcion = e.target.closest('[data-dd-opcion]');
+  if (opcion) {
+    document.getElementById('zona').value = opcion.dataset.ddOpcion;
+    document.getElementById('zona-txt').textContent = opcion.dataset.ddOpcion;
+    document.getElementById('zona-txt').classList.add('elegido');
+    document.getElementById('monto').value = opcion.dataset.monto;
+    cerrarZona();
+    return;
+  }
   const el = e.target.closest('[data-action],[data-go]');
   if (!el) return;
   if (el.dataset.go) { location.hash = '#/' + el.dataset.go; return; }
@@ -620,12 +659,6 @@ app.addEventListener('submit', async (e) => {
 });
 
 app.addEventListener('change', async (e) => {
-  if (e.target.id === 'zona') {
-    const op = e.target.selectedOptions[0];
-    const monto = document.getElementById('monto');
-    if (op && op.dataset.monto !== undefined && monto) monto.value = op.dataset.monto;
-    return;
-  }
   if (e.target.id === 'foto' && e.target.files[0]) {
     try {
       ui.foto = await comprimirFoto(e.target.files[0]);

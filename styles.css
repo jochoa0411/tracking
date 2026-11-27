@@ -211,3 +211,41 @@ textarea { min-height: 80px; resize: vertical; }
   box-shadow: 0 6px 16px rgba(28,91,216,.35); display: grid; place-items: center;
 }
 .tab-mas a svg { width: 26px; height: 26px; }
+
+/* ── Selector propio (hoja inferior): reemplaza el <select> nativo ── */
+.dd { position: relative; }
+.dd-btn {
+  width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border: 1px solid var(--linea); background: var(--panel); border-radius: 12px; padding: 12px 14px;
+  font-size: 16px; text-align: left; cursor: pointer;
+}
+.dd-btn:focus-visible { outline: none; border-color: var(--azul); box-shadow: 0 0 0 3px rgba(28,91,216,.15); }
+.dd-btn:disabled { background: var(--gris-suave); color: var(--muted); cursor: not-allowed; }
+.dd-val { color: var(--muted); }
+.dd-val.elegido { color: var(--texto); font-weight: 600; }
+.dd-chev { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; }
+
+.dd-hoja { position: fixed; inset: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center; }
+.dd-fondo { position: absolute; inset: 0; background: rgba(14,26,51,.35); animation: dd-fade .15s ease-out; }
+.dd-panel {
+  position: relative; width: 100%; max-width: 560px; max-height: 78vh; display: flex; flex-direction: column;
+  background: var(--panel); border-radius: 22px 22px 0 0; padding: 8px 16px calc(16px + var(--safe-bottom));
+  box-shadow: 0 -8px 30px rgba(0,0,0,.18); animation: dd-subir .2s ease-out;
+}
+.dd-agarre { width: 40px; height: 5px; border-radius: 999px; background: var(--linea); margin: 6px auto 12px; }
+.dd-titulo { font-weight: 700; font-size: 17px; text-align: center; margin-bottom: 10px; }
+.dd-lista { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
+.dd-opcion {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border: 1px solid var(--linea); background: var(--panel); border-radius: 14px; padding: 14px 16px;
+  font-size: 16px; text-align: left; cursor: pointer;
+}
+.dd-opcion:active { background: var(--gris-suave); }
+.dd-opcion-txt { display: flex; flex-direction: column; min-width: 0; }
+.dd-opcion-txt strong { font-weight: 600; }
+.dd-opcion-txt span { font-size: 13px; color: var(--muted); }
+.dd-opcion-monto { font-weight: 700; color: var(--azul-oscuro); white-space: nowrap; }
+.dd-cancelar { margin-top: 8px; }
+@keyframes dd-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dd-subir { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .dd-fondo, .dd-panel { animation: none; } }
